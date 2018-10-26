@@ -1,4 +1,4 @@
-import socket from 'module_socket';
+const socket = io("http://localhost:3000/list_room");
 var number_room;
 socket.on('created-room', data => {
     $("#room").append('<div class="card text-center">' + 

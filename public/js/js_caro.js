@@ -1,5 +1,4 @@
-
-import {socket} from './module_socket';
+const socket = io("http://localhost:3000/caro");
     //create table  
     for(var i=0; i<33; i++){
         var tr = document.createElement("tr");
