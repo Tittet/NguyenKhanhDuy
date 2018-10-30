@@ -1,4 +1,4 @@
-const socket = io("http://localhost:3000/caro");
+const socket = io("http://localhost:3000/list_room");
     //create table  
     for(var i=0; i<33; i++){
         var tr = document.createElement("tr");
@@ -23,6 +23,7 @@ const socket = io("http://localhost:3000/caro");
         }
     }
 $(document).ready(() => {
+    
     socket.on('send-x', data => {
         var tdk = document.getElementsByTagName("td")[data.k];
         tdk.innerHTML = "";

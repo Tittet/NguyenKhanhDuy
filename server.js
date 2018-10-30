@@ -9,6 +9,7 @@ const ios = require('./modules/socketio.js').initialize(server);
 var db = mongodb.create_db;
 var schema = mongodb.Schema;
 var a = [];
+var nbr = 0;
 
 app.use(express.static("public"));
 app.set("view engine","ejs");   
@@ -80,8 +81,9 @@ io.on('connection', socket => {
         var number_room = Math.floor((Math.random()*1000) + 1);
         if(a.length == 0){
             a.push(number_room);
-            io.emit('created-room', number_room);
+            io.emit('list-room', a);
             socket.emit('into-room');
+            nbr = number_room;
         }
         else{
             let count = 0;
@@ -96,8 +98,9 @@ io.on('connection', socket => {
             promise.then(count => {
                 if(count == 0){
                     a.push(number_room);
-                    io.emit('created-room', number_room);
+                    io.emit('list-room', a);
                     socket.emit('into-room');
+                    nbr = number_room;
                 }
                 else{
                     create_number(a);
@@ -111,6 +114,7 @@ io.on('connection', socket => {
     socket.on('create-room', () => {
         var promise = new Promise((resolve, reject) => {
             resolve(create_number(a));
+            
         })
         promise.then(() => {
             for(i in a){
@@ -119,19 +123,49 @@ io.on('connection', socket => {
         })
     })
     socket.on('join-room', data => {
-        socket.join(data);
-        console.log(socket.adapter.rooms);
+        nbr = data;
+        console.log("***"+data+"***");
     })
     socket.on("disconnect", () => {
         console.log(socket.id + " Disconnected!!!");
     })
-    // socket.on('danh-x', data => { 
-    //     socket.broadcast.emit("send-x",data);
-    //     console.log(data);
-    // })
-    // socket.on('hihi', data => {
-    //     console.log(data);
-    // })
+})
+io.on('connection', socket => {
+    let out_room = 0;
+    if(nbr != 0){
+        out_room = nbr;
+        socket.join(nbr);
+        if(socket.adapter.rooms[nbr].length == 2){
+            a[a.indexOf(out_room)] = Number("111"+a[a.indexOf(out_room)]);
+            io.emit('list-room',a);
+        }
+        nbr = 0;
+    }
+    socket.on('danh-x', data => { 
+        socket.broadcast.emit("send-x",data);
+        console.log(data);
+    })
+    socket.on('hihi', data => {
+        console.log(data);
+    })
+    socket.on("disconnect", () => {
+        if(out_room != 0){
+            if(socket.adapter.rooms[out_room] == undefined){
+                a.splice(a.indexOf(out_room),1);
+                io.emit('list-room', a);
+            }
+            else{
+                if(socket.adapter.rooms[out_room].length == 1 ){
+                    let xy = Number("111"+out_room);
+                    var ttt = a[a.indexOf(xy)].toString();
+                    ttt = Number(ttt.substring(3));
+                    a[a.indexOf(xy)] = ttt;
+                    io.emit('list-room',a);
+                }
+            }
+        }
+    })
+
 })
 app.post('/', (req, res) => {
     var username = req.body.username;
